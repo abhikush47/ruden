@@ -60,7 +60,7 @@ export default function CTASection() {
           <Button
             variant="secondary"
             size="lg"
-            href="https://wa.me/919999999999?text=Hi%20Rudrendra%2C%20I%27m%20interested%20in%20personal%20training"
+            href="https://wa.me/9779749939797?text=Hi%20Rudrendra%2C%20I%27m%20interested%20in%20personal%20training"
           >
             <FiMessageCircle className="mr-2" size={18} />
             Chat on WhatsApp
