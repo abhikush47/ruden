@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   FiActivity,
-  FiCamera,
   FiMessageSquare,
   FiLogOut,
   FiTrendingUp,
@@ -25,7 +24,7 @@ import {
   Message,
 } from "@/lib/firestore";
 
-type TabId = "workout" | "progress" | "photos" | "messages";
+type TabId = "workout" | "progress" | "messages";
 
 const ADMIN_EMAIL = "abhi.kush047@gmail.com";
 
@@ -34,7 +33,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabId>("workout");
 
-  // Real-time data from Firestore
   const [clientData, setClientData] = useState<ClientData | null>(null);
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutDay[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -46,27 +44,20 @@ export default function DashboardPage() {
     router.push("/");
   }, [signOut, router]);
 
-  // Redirect logic
   useEffect(() => {
     if (loading) return;
-
-    // Not logged in → go to login
     if (!user) {
       router.push("/dashboard/login");
       return;
     }
-
-    // Admin → redirect to admin panel
     if (user.email === ADMIN_EMAIL) {
       router.push("/admin");
       return;
     }
   }, [user, loading, router]);
 
-  // Subscribe to real-time data
   useEffect(() => {
     if (!user) return;
-    // Don't subscribe if admin (they'll be redirected)
     if (user.email === ADMIN_EMAIL) return;
 
     const unsubClient = subscribeToClientData(user.uid, (data) => {
@@ -82,7 +73,6 @@ export default function DashboardPage() {
       setMessages(msgs);
     });
 
-    // Cleanup subscriptions on unmount
     return () => {
       unsubClient();
       unsubWorkouts();
@@ -90,15 +80,14 @@ export default function DashboardPage() {
     };
   }, [user]);
 
-  // Send message handler
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !user) return;
-    const senderName = clientData?.name || user.email?.split("@")[0] || "Client";
+    const senderName =
+      clientData?.name || user.email?.split("@")[0] || "Client";
     await sendMessage(user.uid, newMessage.trim(), "client", senderName);
     setNewMessage("");
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-primary">
@@ -107,25 +96,24 @@ export default function DashboardPage() {
     );
   }
 
-  // Not logged in or is admin (will redirect)
   if (!user || user.email === ADMIN_EMAIL) return null;
 
-  // Waiting for Firestore data
   if (dataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-primary">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted font-body text-sm">Loading your dashboard...</p>
+          <p className="text-muted font-body text-sm">
+            Loading your dashboard...
+          </p>
         </div>
       </div>
     );
   }
 
-  // Client display name
-  const clientName = clientData?.name || user.email?.split("@")[0] || "Client";
+  const clientName =
+    clientData?.name || user.email?.split("@")[0] || "Client";
 
-  // Stats from Firestore
   const stats = [
     {
       icon: FiCalendar,
@@ -158,7 +146,6 @@ export default function DashboardPage() {
   const tabs = [
     { id: "workout" as TabId, label: "Workout Plan", icon: FiActivity },
     { id: "progress" as TabId, label: "Progress", icon: FiTrendingUp },
-    { id: "photos" as TabId, label: "Photos", icon: FiCamera },
     { id: "messages" as TabId, label: "Messages", icon: FiMessageSquare },
   ];
 
@@ -188,7 +175,7 @@ export default function DashboardPage() {
           </button>
         </motion.div>
 
-        {/* Quick Stats - REAL-TIME from Firestore */}
+        {/* Quick Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           {stats.map((stat, index) => {
             const IconComponent = stat.icon;
@@ -354,33 +341,6 @@ export default function DashboardPage() {
             </GlassCard>
           )}
 
-          {/* ===== PHOTOS TAB ===== */}
-          {activeTab === "photos" && (
-            <GlassCard hover={false}>
-              <h3 className="font-heading text-2xl tracking-wider text-white mb-6">
-                Progress Photos
-              </h3>
-              <div className="border-2 border-dashed border-accent/20 rounded-lg p-12 text-center">
-                <FiCamera className="text-accent mx-auto mb-4" size={48} />
-                <p className="text-white font-body text-sm mb-2">
-                  Upload your progress photos
-                </p>
-                <p className="text-muted font-body text-xs mb-6">
-                  Supported: JPG, PNG (max 5MB)
-                </p>
-                <label className="inline-block px-6 py-2.5 bg-accent/20 text-accent rounded-sm font-body text-xs uppercase tracking-wider cursor-pointer hover:bg-accent hover:text-primary transition-all">
-                  Choose Files
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                  />
-                </label>
-              </div>
-            </GlassCard>
-          )}
-
           {/* ===== MESSAGES TAB ===== */}
           {activeTab === "messages" && (
             <GlassCard hover={false}>
@@ -403,7 +363,9 @@ export default function DashboardPage() {
                             : "bg-white/10 text-white"
                         }`}
                       >
-                        {msg.sender === "coach" ? "R" : clientName.charAt(0).toUpperCase()}
+                        {msg.sender === "coach"
+                          ? "R"
+                          : clientName.charAt(0).toUpperCase()}
                       </div>
                       <div
                         className={`rounded-lg p-3 max-w-md ${
